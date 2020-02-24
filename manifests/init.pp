@@ -1197,11 +1197,17 @@ class ssh (
   else { $host_aliases = [$::hostname, $::ipaddress] }
 
   # export each node's ssh key
-  @@sshkey { $::fqdn :
-    ensure       => $ssh_key_ensure,
-    host_aliases => $host_aliases,
-    type         => $ssh_key_type,
-    key          => $key,
+  if $key {
+    @@sshkey { $::fqdn :
+      ensure       => $ssh_key_ensure,
+      host_aliases => $host_aliases,
+      type         => $ssh_key_type,
+      key          => $key,
+    }
+  } else {
+    notify { "No ssh host keys present on this run. Will retry on next run":
+      loglevel => warning
+    }
   }
 
   file { 'ssh_known_hosts':
